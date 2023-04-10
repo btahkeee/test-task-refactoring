@@ -1,45 +1,55 @@
 <html>
-    <head>
-    <title>{{t}}</title>
-    </head>
 
-    <body>
-            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-color: black; padding: 10px;">
-                <h1>{{ t }}</h1>
-                
-                <div style="margin-top: 10px; margin-bottom: 10px;">
-                    <label for="customer">Select a customer:</label>
-                    <br/>
-                    <br/>
-                    <select id="customer" (change)="select($event)">
-                    <option *ngFor="let customer of cust" [value]="customer.id">{{ customer.lastname }}, {{ customer.firstname }} ({{customer.yearofbirth}})</option>
-                    </select>
-                </div>
-                </div>
-                
+<head>
+    <title>{{title}}</title>
+</head>
+
+<body>
+    <div
+        style="display: flex; flex-direction: column; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-color: black; padding: 10px;">
+        <h1>{{ title }}</h1>
+        <div *ngIf="isLoaded === false && !selectedCustomer">
+            <div style="display:flex; justify-content: center;">
+                Loading data ...
+            </div>
+        </div>
+        <div *ngIf="selectedCustomer && customerList">
+            <div style="margin-top: 10px; margin-bottom: 10px;">
+                <label for="customer">Select a customer:</label>
                 <br />
                 <br />
-                
-                <!-- If a customer is selected -->
-                <div *ngIf="selected_c > 0">
-                <!-- If data is still being loaded -->
-                <div *ngIf="isLoaded === false">
-                    <div style="display:flex; justify-content: center;">
-                    Loading data ...
-                    </div>
-                </div>
-                <div *ngIf="isLoaded === true">
-                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-color: #000000; padding: 10px;">
-                    <div style="margin-top: 10px;">
-                        <div class="purchased-products">
-                        <h1>{{customer(selected_c)}} Purchased products:</h1>
+                <select id="customer" [(ngModel)]="selectedCustomer" (change)="onCustomerSelect($event)">
+                    <option *ngFor="let customer of customerList" [value]="customer.id">{{ customer.lastname }}, {{
+                        customer.firstname }} ({{customer.yearofbirth}})</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <br />
+    <br />
+
+    <!-- If a customer is selected -->
+    <div *ngIf="selectedCustomer > 0">
+        <!-- If data is still being loaded -->
+        <div *ngIf="isLoaded === false">
+            <div style="display:flex; justify-content: center;">
+                Loading data ...
+            </div>
+        </div>
+        <div *ngIf="isLoaded === true">
+            <div
+                style="display: flex; flex-direction: column; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-color: #000000; padding: 10px;">
+                <div style="margin-top: 10px;">
+                    <div class="purchased-products">
+                        <h1>{{getCustomer(selectedCustomer)}} Purchased products:</h1>
                         <ul>
-                            <li *ngFor="let product of purchased_p">{{ product.name }} ({{product.type}})</li>
+                            <li *ngFor="let product of purchasedProducts">{{ product.name }} ({{product.type}})</li>
                         </ul>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </body>
+    </div>
+</body>
+
 </html>

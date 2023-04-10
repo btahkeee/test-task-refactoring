@@ -1,44 +1,65 @@
+import { CustomerService } from './../../Services/customer.service';
 import { Component, OnInit } from '@angular/core';
 import { Customer, Product, Purchase } from './main.models';
+import { PurchaseService } from 'src/app/Services/purchase.service';
+import { ProductService } from 'src/app/Services/product.service';
 
 @Component({
-  selector: 'app-main',
-  templateUrl: './main.component.html'
+    selector: 'app-main',
+    templateUrl: './main.component.html',
+    providers: [CustomerService]
 })
 export class MainComponent implements OnInit {
-  t = 'Product Purchases';
-  cust?: Customer[];
-  prod?: Product[];
-  purchase?: Purchase[];
-  selected_c: number = 0;
-  purchased_p?: Product[];
-  isLoaded:boolean = false;
+    title = 'Product Purchases';
+    customerList: Customer[] = new Array<Customer>();
+    productList?: Product[];
+    purchase?: Purchase[];
+    selectedCustomer: number = 0;
+    purchasedProducts?: Product[];
+    isLoaded: boolean = false;
 
-  async ngOnInit() {
-    // Load customer and product data up front
-    var c = new Customer();
-    this.cust = await c.load();
-    var p = new Product();
-    this.prod = await p.load();
-  }
+    constructor(
+        private purchaseService: PurchaseService,
+        private customerService: CustomerService,
+        private productService: ProductService
+    ) {}
 
-  // When the user selects a new customer
-  select(event:any) {
-    this.isLoaded = false;
-    var pu = new Purchase();
-    // Load product purchase information
-    pu.load().then(s => this.purchase = s).then(_ => {
-      this.selected_c = event.target.value as number;
-      let purchase = this.purchase!.filter(p => p.customerid == event.target.value);
-      this.purchased_p = purchase.map(p => this.prod!.find(pr => pr.id == p.productid)!);
-  
-      this.isLoaded = true;
-    });
-  }
+    async ngOnInit(): Promise<void> {
+        // Load customer and product data up front
+        Promise.allSettled([
+            (this.customerList = await this.customerService.load()),
+            (this.productList = await this.productService.load()),
+        ]).then((_) => this.loadPurchases(this.customerList[0].id));
+    }
 
-  // Gets customer info for purchase details
-  customer(id:number) {
-    var c = this.cust?.find(s => s.id == id);
-    return c?.firstname + " " + c?.lastname + " (" + c?.yearofbirth + ")";
-  }
+    // When the user selects a new customer
+    onCustomerSelect(event: any): void {
+        this.isLoaded = false;
+        this.loadPurchases(event.target.value);
+    }
+
+    loadPurchases(customerId?: number): void {
+        if (customerId) {
+            //TODO create services for different
+            this.purchaseService.load().then((purchases) => {
+                this.selectedCustomer = customerId;
+                let purchase = purchases!.filter(
+                    (p) => p.customerid == customerId
+                );
+                this.purchasedProducts = purchase.map(
+                    (p) => this.productList!.find((pr) => pr.id == p.productid)!
+                );
+
+                this.isLoaded = true;
+            });
+        } else {
+            console.log('CustomerId is not defined');
+        }
+    }
+
+    // Gets customer info for purchase details
+    getCustomer(id: number): string {
+        var c = this.customerList?.find((s) => s.id == id);
+        return c?.firstname + ' ' + c?.lastname + ' (' + c?.yearofbirth + ')';
+    }
 }
